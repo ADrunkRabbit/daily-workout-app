@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="הכושר שלי" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>התכנית שלי | קליסטניקס, סיבולת ויוגה</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Heebo & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Heebo', 'Inter', 'sans-serif'],
+            num: ['Inter', 'Heebo', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              850: '#151e32',
+              925: '#0b1120',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Heebo', sans-serif;
+      background-color: #0b1120;
+      color: #f8fafc;
+      overscroll-behavior-y: none;
+      padding-bottom: calc(5.2rem + env(safe-area-inset-bottom));
+    }
+    .safe-top {
+      padding-top: max(1rem, env(safe-area-inset-top));
+    }
+    .safe-bottom {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 999px;
+    }
+
+    /* SVG Exercise Animations */
+    @keyframes pikeBob {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(7px); }
+    }
+    @keyframes pulseMuscle {
+      0%, 100% { opacity: 0.75; }
+      50% { opacity: 1; }
+    }
+    @keyframes legLift {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-14deg); }
+    }
+    @keyframes hollowRock {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(3deg); }
+    }
+    @keyframes cossackShift {
+      0%, 100% { transform: translateX(0px); }
+      50% { transform: translateX(-8px); }
+    }
+    @keyframes pullUpMotion {
+      0%, 100% { transform: translateY(4px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes breatheExpand {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    .anim-pike { animation: pikeBob 2.6s ease-in-out infinite; }
+    .anim-muscle { animation: pulseMuscle 2s ease-in-out infinite; }
+    .anim-leg { transform-origin: 95px 102px; animation: legLift 2.4s ease-in-out infinite; }
+    .anim-hollow { transform-origin: 100px 105px; animation: hollowRock 3s ease-in-out infinite; }
+    .anim-cossack { animation: cossackShift 3s ease-in-out infinite; }
+    .anim-pullup { animation: pullUpMotion 2.8s ease-in-out infinite; }
+    .anim-breathe { transform-origin: 100px 80px; animation: breatheExpand 4s ease-in-out infinite; }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Top In-App Alert Banner (Triggered when workout window approaches or via Test) -->
+  <div id="inAppAlertBanner" class="hidden fixed top-3 inset-x-3 z-50 max-w-md mx-auto bg-gradient-to-l from-emerald-600 to-teal-700 text-white rounded-2xl shadow-2xl shadow-emerald-950/80 border border-emerald-400/40 p-4 transition-all duration-300">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-xl">
+        ⚡
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-100">התראת אימון יומי</span>
+          <button onclick="dismissAlertBanner()" class="text-white/80 hover:text-white p-1 rounded-lg text-sm">✕</button>
+        </div>
+        <h4 id="alertBannerTitle" class="font-bold text-base leading-snug mt-0.5">הגיע זמן האימון היומי שלך!</h4>
+        <p id="alertBannerBody" class="text-xs text-emerald-50/90 mt-1 leading-relaxed">20–25 דקות של תנועה איכותית. מוכן להתחיל?</p>
+        <div class="flex items-center gap-2 mt-3">
+          <button onclick="startWorkoutFromAlert()" class="bg-white text-slate-900 font-bold text-xs px-3.5 py-2 rounded-xl shadow active:scale-95 transition">
+            התחל עכשיו
+          </button>
+          <button onclick="snoozeAlert()" class="bg-white/15 hover:bg-white/25 text-white font-medium text-xs px-3 py-2 rounded-xl active:scale-95 transition">
+            דחה ב-15 דק׳ (חלון גמיש)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Shell -->
+  <div class="max-w-md mx-auto min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="safe-top px-4 pb-3 bg-slate-925/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-800/80">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="hebrewDateLabel" class="text-xs font-medium text-slate-400">טוען תאריך...</span>
+          </div>
+          <h1 class="text-xl font-extrabold tracking-tight text-white mt-0.5">התכנית השבועית שלי</h1>
+        </div>
+
+        <!-- Streak & Daily Reps Quick Pill -->
+        <div class="flex items-center gap-2">
+          <div class="bg-slate-800/90 border border-slate-700/70 px-3 py-1.5 rounded-2xl flex items-center gap-1.5">
+            <span class="text-amber-400 text-sm">🔥</span>
+            <div class="text-right leading-none">
+              <span id="streakCount" class="font-num font-bold text-sm text-white">0</span>
+              <span class="text-[10px] text-slate-400 block">ימי רצף</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workout Time & Flexibility Status Bar -->
+      <div onclick="switchTab('settings')" class="mt-3 bg-slate-850/90 hover:bg-slate-800 border border-slate-700/60 rounded-2xl px-3.5 py-2.5 flex items-center justify-between cursor-pointer active:scale-[0.99] transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div id="reminderIconBox" class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-200">יעד יומי: <span id="headerTargetTime" class="font-num text-emerald-400">18:00</span></span>
+              <span id="headerFlexBadge" class="text-[10px] bg-slate-700/80 text-slate-300 px-1.5 py-0.5 rounded-md">± 30 דק׳</span>
+            </div>
+            <p id="countdownStatusText" class="text-[11px] text-slate-400 truncate mt-0.5">מחשב זמן לאימון הבא...</p>
+          </div>
+        </div>
+        <span class="text-xs text-emerald-400 font-semibold shrink-0 mr-2">ערוך ◂</span>
+      </div>
+    </header>
+
+    <!-- TAB 1: WEEKLY PLAN & DAILY VIEW -->
+    <main id="tab-plan" class="flex-1 px-4 pt-4 pb-6 space-y-4">
+
+      <!-- 7-Day Interactive Calendar Strip -->
+      <section aria-label="לוח שנה שבועי">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">לוח שבועי (היום מודגש)</h2>
+          <button id="jumpToTodayBtn" onclick="selectToday()" class="hidden text-xs font-semibold text-emerald-400 hover:text-emerald-300">
+            חזור להיום ↺
+          </button>
+        </div>
+        <div id="weekCalendarStrip" class="grid grid-cols-7 gap-1.5">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- Selected Day Summary Card -->
+      <section id="dayHeroCard" class="rounded-3xl p-4 border transition-all duration-300 relative overflow-hidden">
+        <!-- Rendered by JS -->
+      </section>
+
+      <!-- Busy Day Toggle ("חוק 10 הדקות") + Daily Reps Micro-Habit -->
+      <section class="grid grid-cols-2 gap-2.5">
+        <!-- Daily Reps 2-min Anchor -->
+        <button id="dailyRepsCard" onclick="toggleDailyReps()" class="text-right p-3 rounded-2xl border transition active:scale-[0.98] flex flex-col justify-between bg-slate-850/90 border-slate-800">
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-amber-400">Daily Reps (2 דק׳)</span>
+            <span id="dailyRepsCheck" class="w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center text-xs"></span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1.5 leading-snug">סט מיקרו יומי נקי רחוק מכשל לבניית הרגל</p>
+        </button>
+
+        <!-- 10-Minute Rule Toggle -->
+        <button id="tenMinRuleCard" onclick="toggleTenMinMode()" class="text-right p-3 rounded-2xl border transition active:scale-[0.98] flex flex-col justify-between bg-slate-850/90 border-slate-800">
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-sky-400">חוק 10 הדקות</span>
+            <span id="tenMinBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">כבוי</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1.5 leading-snug">יום עמוס? הדגש מקטע ליבה אחד לשמירת הרצף</p>
+        </button>
+      </section>
+
+      <!-- Built-in Rest / Interval Timer Widget -->
+      <section class="bg-slate-850 border border-slate-800 rounded-2xl p-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">⏱️</span>
+            <div>
+              <h3 class="text-xs font-bold text-slate-200">טיימר מנוחה ואינטרוולים</h3>
+              <p id="timerModeLabel" class="text-[11px] text-slate-400">בחר משך מנוחה או עבודה</p>
+            </div>
+          </div>
+          <div id="timerDisplay" class="font-num text-2xl font-extrabold text-white tracking-wider bg-slate-900 px-3 py-1 rounded-xl border border-slate-700/70">
+            00:00
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1">
+          <button onclick="startPresetTimer(45, 'מנוחה 45 שנ׳')" class="shrink-0 text-xs font-num font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl border border-slate-700/60 active:scale-95">45s</button>
+          <button onclick="startPresetTimer(60, 'מנוחה 60 שנ׳')" class="shrink-0 text-xs font-num font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl border border-slate-700/60 active:scale-95">60s</button>
+          <button onclick="startPresetTimer(75, 'מנוחה 75 שנ׳')" class="shrink-0 text-xs font-num font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl border border-slate-700/60 active:scale-95">75s</button>
+          <button onclick="startPresetTimer(90, 'מנוחה 90 שנ׳')" class="shrink-0 text-xs font-num font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl border border-slate-700/60 active:scale-95">90s</button>
+          <button onclick="startInterval4020()" class="shrink-0 text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 active:scale-95">אינטרוול 40/20</button>
+          <button id="stopTimerBtn" onclick="stopTimer()" class="hidden shrink-0 text-xs font-semibold bg-rose-500/20 text-rose-300 px-2.5 py-1.5 rounded-xl border border-rose-500/30 active:scale-95">עצור</button>
+        </div>
+      </section>
+
+      <!-- Exercises List for Selected Day -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-200">פירוט האימון להיום</h3>
+          <span id="dayProgressText" class="text-xs font-semibold text-emerald-400">0/3 הושלמו</span>
+        </div>
+
+        <div id="dayExercisesContainer" class="space-y-3">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- Complete Day Button -->
+      <button id="completeWorkoutBtn" onclick="markEntireDayComplete()" class="w-full py-3.5 rounded-2xl font-bold text-sm shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
+        <!-- Rendered by JS -->
+      </button>
+
+    </main>
+
+    <!-- TAB 2: EXERCISE LIBRARY WITH DEMONSTRATIVE SVG & TARGET MUSCLES -->
+    <main id="tab-library" class="hidden flex-1 px-4 pt-4 pb-6 space-y-4">
+      <div>
+        <h2 class="text-lg font-extrabold text-white">ספריית תרגילים והדגמות</h2>
+        <p class="text-xs text-slate-400 mt-0.5">איורים מדגימים, דגשי טכניקה וקבוצות שרירים ממוקדות לכל תרגיל בתכנית</p>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button onclick="filterLibrary('all')" data-cat="all" class="lib-filter-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 transition">
+          הכל (11)
+        </button>
+        <button onclick="filterLibrary('strength')" data-cat="strength" class="lib-filter-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          כוח וקליסטניקס
+        </button>
+        <button onclick="filterLibrary('cardio')" data-cat="cardio" class="lib-filter-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          סיבולת ואירובי
+        </button>
+        <button onclick="filterLibrary('yoga')" data-cat="yoga" class="lib-filter-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          יוגה ומוביליטי
+        </button>
+      </div>
+
+      <!-- Exercise Cards Container -->
+      <div id="libraryCardsContainer" class="space-y-4">
+        <!-- Rendered by JS -->
+      </div>
+    </main>
+
+    <!-- TAB 3: REMINDER SETTINGS, FLEXIBILITY & IPHONE GUIDE -->
+    <main id="tab-settings" class="hidden flex-1 px-4 pt-4 pb-6 space-y-4">
+      <div>
+        <h2 class="text-lg font-extrabold text-white">שעת אימון, גמישות והתראות</h2>
+        <p class="text-xs text-slate-400 mt-0.5">התאם את חלון הזמן היומי כך שישתלב בשגרה בלי לחץ</p>
+      </div>
+
+      <!-- Time & Flexibility Configuration Card -->
+      <div class="bg-slate-850 border border-slate-800 rounded-3xl p-4 space-y-4">
+        <div>
+          <label for="workoutTimeInput" class="block text-xs font-bold text-slate-300 mb-1.5">שעת יעד קבועה לאימון היומי</label>
+          <div class="flex items-center gap-3">
+            <input type="time" id="workoutTimeInput" value="18:00" onchange="saveReminderSettings()"
+              class="font-num text-xl font-bold bg-slate-900 text-white border border-slate-700 rounded-2xl px-4 py-3 w-full focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">חלון גמישות (מרווח ביטחון סביב השעה)</label>
+          <div class="grid grid-cols-3 gap-2" id="flexWindowButtons">
+            <button type="button" onclick="setFlexWindow(15)" data-flex="15" class="flex-opt-btn py-2.5 px-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300">
+              ± 15 דקות
+            </button>
+            <button type="button" onclick="setFlexWindow(30)" data-flex="30" class="flex-opt-btn py-2.5 px-2 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-300">
+              ± 30 דקות
+            </button>
+            <button type="button" onclick="setFlexWindow(60)" data-flex="60" class="flex-opt-btn py-2.5 px-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300">
+              ± 60 דקות
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+            התראה מקדימה תופיע 15 דקות לפני השעה שהגדרת, וחלון הגמישות יישאר פתוח עד סוף הטווח כדי שתוכל להתאמן ברוגע גם אם התעכבת.
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+          <div>
+            <span class="text-sm font-bold text-slate-200 block">התראות וצליל תזכורת</span>
+            <span id="notifPermissionStatus" class="text-[11px] text-slate-400">התראה בתוך האפליקציה פעילה</span>
+          </div>
+          <button onclick="requestSystemNotifications()" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl active:scale-95 transition">
+            אפשר התראות דפדפן
+          </button>
+        </div>
+
+        <button onclick="triggerTestNotification()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm py-3 rounded-2xl shadow-lg shadow-emerald-950/50 active:scale-[0.98] transition">
+          🔔 בדוק התראה עכשיו (תצוגה מקדימה + צליל)
+        </button>
+      </div>
+
+      <!-- iPhone Home Screen Instructions -->
+      <div class="bg-slate-850/70 border border-slate-800 rounded-3xl p-4 space-y-2.5">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📱</span>
+          <h3 class="text-sm font-bold text-white">איך להפוך לאפליקציה מלאה באייפון</h3>
+        </div>
+        <ol class="text-xs text-slate-300 space-y-1.5 list-decimal list-inside leading-relaxed">
+          <li>פתח קובץ/קישור זה בדפדפן <strong>Safari</strong> באייפון.</li>
+          <li>לחץ על כפתור ה-<strong>שיתוף (Share)</strong> בתחתית המסך (הריבוע עם החץ למעלה).</li>
+          <li>גלול ובחר ב-<strong>"הוסף למסך הבית" (Add to Home Screen)</strong>.</li>
+          <li>האפליקציה תופיע כאייקון במסך הבית ותיפתח במסך מלא ללא שורת כתובת.</li>
+        </ol>
+      </div>
+
+      <!-- Reset Progress -->
+      <div class="pt-2">
+        <button onclick="confirmResetWeek()" class="w-full py-2.5 rounded-2xl border border-slate-800 text-xs font-semibold text-slate-400 hover:text-rose-400 hover:border-rose-500/30 transition">
+          אפס סימוני התקדמות לשבוע הנוכחי
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Exercise Detail Modal (Opened when tapping "הדגמה ושרירים" from daily plan) -->
+  <div id="exerciseDetailModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-700/80 w-full max-w-md rounded-3xl p-4 max-h-[88vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <span id="modalCategoryTag" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">כוח</span>
+        <button onclick="closeExerciseModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold">✕</button>
+      </div>
+      <div id="modalBodyContent" class="mt-3 space-y-3">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-slate-925/95 backdrop-blur-lg border-t border-slate-800/90 safe-bottom">
+    <div class="max-w-md mx-auto grid grid-cols-3 px-2 pt-2">
+      <button onclick="switchTab('plan')" id="nav-plan" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-emerald-400 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span class="text-[11px] font-bold mt-1">תכנית יומית</span>
+      </button>
+
+      <button onclick="switchTab('library')" id="nav-library" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-[11px] font-semibold mt-1">ספריית תרגילים</span>
+      </button>
+
+      <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        <span class="text-[11px] font-semibold mt-1">שעה והתראות</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    // =========================================================================
+    // 1. EXERCISE DATABASE WITH CUSTOM ANATOMICAL SVG ILLUSTRATIONS
+    // =========================================================================
+    const EXERCISES_DB = {
+      pike_pushup: {
+        id: 'pike_pushup',
+        category: 'strength',
+        categoryLabel: 'כוח וקליסטניקס',
+        name: 'פייק פוש-אפס ודחיפות נקיות',
+        dosage: '4 סטים × 6–10 חזרות איכותיות | מנוחה 90 שנ׳',
+        primaryMuscles: ['כתף קדמית ואמצעית (Deltoids)', 'יד אחורית (Triceps)'],
+        secondaryMuscles: ['חזה עליון', 'שרירי ליבה ומייצבי שכמה'],
+        instructions: 'התמקם בתנוחת V הפוכה עם אגן גבוה ורגליים ישרות ככל האפשר. הורד את קודקוד הראש קדימה מעבר לקו כפות הידיים (יצירת משולש) ודחוף חזרה לנעילה מלאה של הכתפיים.',
+        tip: 'עצור חזרה אחת לפני שהצורה מתפרקת. אם הטכניקה נשברת, עבור לשכיבות סמיכה נקיות או הגבה ידיים על ספסל. בפארק שלב מקבילים, ובהמשך קדם מנוף ל-Pseudo Planche Push-ups.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <!-- Ground -->
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <!-- Pike V-Shape Body -->
+            <g class="anim-pike">
+              <!-- Legs -->
+              <line x1="150" y1="113" x2="108" y2="42" stroke="#94a3b8" stroke-width="7" stroke-linecap="round"/>
+              <!-- Torso -->
+              <line x1="108" y1="42" x2="72" y2="82" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+              <!-- Head -->
+              <circle cx="58" cy="92" r="9" fill="#e2e8f0"/>
+              <!-- Highlighted Target Muscles: Shoulders & Triceps -->
+              <circle cx="74" cy="80" r="7" fill="#10b981" class="anim-muscle"/>
+              <line x1="74" y1="82" x2="64" y2="113" stroke="#10b981" stroke-width="6" stroke-linecap="round" class="anim-muscle"/>
+            </g>
+            <!-- Hands planted -->
+            <circle cx="64" cy="113" r="4" fill="#34d399"/>
+            <!-- Motion arrow -->
+            <path d="M44 76 L44 96 M40 92 L44 96 L48 92" stroke="#fbbf24" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <text x="14" y="22" fill="#10b981" font-size="9" font-weight="bold">דגש: כתפיים ותלת-ראשי</text>
+          </svg>
+        `
+      },
+      lsit_prep: {
+        id: 'lsit_prep',
+        category: 'strength',
+        categoryLabel: 'כוח וקליסטניקס',
+        name: 'הכנה ל-L-Sit וקומפרשן ליבה',
+        dosage: '4 סטים × 10–15 שנ׳ החזקה + 8 הרמות | מנוחה 60 שנ׳',
+        primaryMuscles: ['בטן ישרה ועמוקה (Core)', 'כופפי ירך (Hip Flexors)'],
+        secondaryMuscles: ['ארבע-ראשי', 'מייצבי שכמה (Serratus & Lower Traps)'],
+        instructions: 'שב על הרצפה עם רגליים ישרות, הנח כפות ידיים לצד הירכיים, דחף את הכתפיים חזק מטה הרחק מהאוזניים ונתק אגן ורגליים (או רגל אחת בכל פעם). המשך בהרמות רגליים מבוקרות בישיבה זקופה.',
+        tip: 'הנחת שני ספרים עבים או זוג קוביות יוגה מתחת לכפות הידיים תיתן לך מרווח עבודה נוח ותלמד דחיפת שכמות נקייה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <!-- Supporting Arms -->
+            <line x1="88" y1="74" x2="88" y2="113" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+            <!-- Torso Upright -->
+            <line x1="85" y1="50" x2="85" y2="96" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="85" cy="36" r="9" fill="#e2e8f0"/>
+            <!-- Highlighted Core & Hip Flexor -->
+            <ellipse cx="90" cy="88" rx="8" ry="11" fill="#10b981" class="anim-muscle"/>
+            <!-- Lifted Legs -->
+            <g class="anim-leg">
+              <line x1="88" y1="96" x2="152" y2="92" stroke="#34d399" stroke-width="7" stroke-linecap="round"/>
+            </g>
+            <path d="M158 98 L158 80 M154 84 L158 80 L162 84" stroke="#fbbf24" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <text x="14" y="22" fill="#10b981" font-size="9" font-weight="bold">דגש: ליבה, כופפי ירך ושכמות</text>
+          </svg>
+        `
+      },
+      hollow_body: {
+        id: 'hollow_body',
+        category: 'strength',
+        categoryLabel: 'כוח וקליסטניקס',
+        name: 'החזקת Hollow Body',
+        dosage: '3 סטים × 25–40 שנ׳ | מנוחה 45 שנ׳',
+        primaryMuscles: ['שריר הבטן הישר והרחב-בטני (Abs & TVA)'],
+        secondaryMuscles: ['כופפי ירך', 'מייצבי עמוד שדרה קדמיים'],
+        instructions: 'שכב על הגב, הצמד את הגב התחתון בחוזקה לרצפה בלי להשאיר רווח, נתק שכמות ורגליים ישרות כ-20 ס״מ מעל הקרקע ומתח ידיים לאחור. שמור על נשימה מבוקרת וגוף קשיח.',
+        tip: 'זהו תרגיל המפתח לכל תרגילי הקליסטניקס. אם הגב התחתון מתנתק, קרב ברך אחת או שתיים לכיוון החזה עד לשליטה מלאה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <g class="anim-hollow">
+              <!-- Banana / Hollow Curve -->
+              <path d="M 42 78 Q 100 118 162 84" stroke="#cbd5e1" stroke-width="8" fill="none" stroke-linecap="round"/>
+              <!-- Arms extended overhead -->
+              <line x1="65" y1="92" x2="32" y2="74" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+              <!-- Head -->
+              <circle cx="56" cy="84" r="8" fill="#e2e8f0"/>
+              <!-- Highlighted Core -->
+              <ellipse cx="102" cy="101" rx="18" ry="6" fill="#10b981" class="anim-muscle"/>
+            </g>
+            <text x="14" y="22" fill="#10b981" font-size="9" font-weight="bold">דגש: קיר הבטן והצמדת גב תחתון</text>
+          </svg>
+        `
+      },
+      cossack_squat: {
+        id: 'cossack_squat',
+        category: 'strength',
+        categoryLabel: 'כוח וקליסטניקס',
+        name: 'סקוואט קוזאק ושהייה בעומק',
+        dosage: '4 סטים × 6 חזרות/צד + 20 שנ׳ סקוואט עמוק | מנוחה 75 שנ׳',
+        primaryMuscles: ['ארבע-ראשי (Quads)', 'שרירי הישבן (Glutes)', 'מקרבי ירך (Adductors)'],
+        secondaryMuscles: ['גמישות קרסול', 'ירך אחורית (Hamstrings)'],
+        instructions: 'עמוד בפיסוק רחב, העבר משקל לצד אחד ורד עמוק כשהעקב צמוד לקרקע והרגל הנגדית ישרה עם אצבעות לתקרה. עבור לצד השני, ובסוף סט התיישב ל-20 שנ׳ בסקוואט עמוק משוחרר.',
+        tip: 'אם הקרסול נוקשה והעקב עולה, החזק קלות במשקוף דלת או עמוד בפארק כדי לשמור על גו זקוף ולהרוויח טווח תנועה מלא.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <g class="anim-cossack">
+              <!-- Bent Leg -->
+              <polyline points="62,113 54,88 78,86" stroke="#10b981" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" class="anim-muscle"/>
+              <!-- Straight Extended Leg -->
+              <line x1="78" y1="86" x2="148" y2="111" stroke="#34d399" stroke-width="6" stroke-linecap="round"/>
+              <!-- Torso Upright -->
+              <line x1="78" y1="86" x2="78" y2="52" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+              <circle cx="78" cy="39" r="9" fill="#e2e8f0"/>
+              <!-- Arms forward for balance -->
+              <line x1="78" y1="60" x2="54" y2="66" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <text x="14" y="22" fill="#10b981" font-size="9" font-weight="bold">דגש: רגליים, ישבן ומוביליטי אגן</text>
+          </svg>
+        `
+      },
+      pull_row: {
+        id: 'pull_row',
+        category: 'strength',
+        categoryLabel: 'כוח וקליסטניקס',
+        name: 'מתח או חתירה בשליטה',
+        dosage: '4 סטים × 5–10 חזרות | מנוחה 90 שנ׳',
+        primaryMuscles: ['רחב-גבי (Lats)', 'מקרבי שכמות (Rhomboids & Mid Traps)'],
+        secondaryMuscles: ['יד קדמית (Biceps)', 'אמות וכתף אחורית'],
+        instructions: 'על מוט מתח בפארק: עליות נקיות מטווח מלא (ידיים ישרות בתחתית, חזה עולה למוט) או ירידות איטיות של 4 שניות. ללא מוט גבוה: חתירה אוסטרלית מתחת למוט נמוך/שולחן עם השהייה של שנייה למעלה.',
+        tip: 'אין מתקן בחוץ? אפשר לקשור סדין או מגבת חזקה מעל דלת סגורה לביצוע חתירות ביתיות בשליטה מלאה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <!-- Pull-up Bar -->
+            <line x1="45" y1="22" x2="155" y2="22" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+            <g class="anim-pullup">
+              <!-- Arms pulling -->
+              <polyline points="82,22 76,46 88,60" stroke="#94a3b8" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <polyline points="118,22 124,46 112,60" stroke="#94a3b8" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <!-- Head -->
+              <circle cx="100" cy="44" r="8" fill="#e2e8f0"/>
+              <!-- Torso & Highlighted Lats -->
+              <line x1="100" y1="54" x2="100" y2="90" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round"/>
+              <path d="M91 58 L87 78 L96 86 Z" fill="#10b981" class="anim-muscle"/>
+              <path d="M109 58 L113 78 L104 86 Z" fill="#10b981" class="anim-muscle"/>
+              <!-- Legs -->
+              <line x1="100" y1="90" x2="100" y2="122" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+            </g>
+            <text x="14" y="128" fill="#10b981" font-size="9" font-weight="bold">דגש: גב עליון, רחב-גבי ויד קדמית</text>
+          </svg>
+        `
+      },
+      ground_flow: {
+        id: 'ground_flow',
+        category: 'strength',
+        categoryLabel: 'כוח וקליסטניקס',
+        name: 'תנועת קרקע: Crab Reach והליכת דוב',
+        dosage: '3 סטים × 45 שנ׳ (20 שנ׳ Crab + 25 שנ׳ Bear) | מנוחה 45 שנ׳',
+        primaryMuscles: ['מייצבי כתף ושכמה', 'שרירי ליבה וארבע-ראשי'],
+        secondaryMuscles: ['פתיחת חזה', 'שורשי כף היד וישבן'],
+        instructions: 'החלף בין 20 שנ׳ Crab Reach (מישיבת סרטן דחוף אגן למעלה והושט יד מעבר לראש לפתיחת חזה) ל-25 שנ׳ הליכת דוב איטית ונמוכה כשהברכיים מרחפות סנטימטר מהרצפה.',
+        tip: 'תרגיל זה בונה שליטה מפרקית ומחבר ישירות בין כוח הקליסטניקס לזרימת היוגה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <!-- Bear Crawl / Quadruped Hover -->
+            <g class="anim-pike">
+              <!-- Hands & Feet -->
+              <line x1="65" y1="76" x2="62" y2="113" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+              <polyline points="132,76 124,102 144,106" stroke="#10b981" stroke-width="6" fill="none" stroke-linecap="round" class="anim-muscle"/>
+              <!-- Flat Back -->
+              <line x1="65" y1="76" x2="132" y2="76" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+              <!-- Shoulder & Core Highlight -->
+              <circle cx="67" cy="76" r="7" fill="#10b981" class="anim-muscle"/>
+              <circle cx="48" cy="74" r="8" fill="#e2e8f0"/>
+            </g>
+            <text x="14" y="22" fill="#10b981" font-size="9" font-weight="bold">דגש: כתפיים, ליבה ותנועה מפרקית</text>
+          </svg>
+        `
+      },
+      cardio_warmup: {
+        id: 'cardio_warmup',
+        category: 'cardio',
+        categoryLabel: 'סיבולת ואירובי',
+        name: 'חימום דינמי וקפיצות קצב',
+        dosage: '5 דקות | 45 שנ׳ עבודה, 15 שנ׳ מנוחה',
+        primaryMuscles: ['מערכת לב-ריאה', 'תאומים ושרירי רגליים'],
+        secondaryMuscles: ['כתפיים', 'חימום מפרקי אגן וקרסול'],
+        instructions: 'בצע 5 מקטעים מתחלפים בין ריצה קלה במקום עם הרמת ברכיים, קפיצות פתיחה-סגירה (Jumping Jacks) וצעדי צד מהירים בנשימה קצובה.',
+        tip: 'המטרה היא להעלות טמפרטורת גוף ודופק בהדרגה בלי להגיע לקוצר נשימה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <g class="anim-pike">
+              <circle cx="100" cy="32" r="8" fill="#e2e8f0"/>
+              <line x1="100" y1="42" x2="100" y2="78" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round"/>
+              <!-- Arms up -->
+              <polyline points="100,48 76,28" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+              <polyline points="100,48 124,28" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+              <!-- Legs wide -->
+              <line x1="100" y1="78" x2="80" y2="111" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+              <line x1="100" y1="78" x2="120" y2="111" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+            </g>
+            <text x="14" y="22" fill="#38bdf8" font-size="9" font-weight="bold">דגש: דופק, תאומים וחימום מפרקים</text>
+          </svg>
+        `
+      },
+      cardio_hiit: {
+        id: 'cardio_hiit',
+        category: 'cardio',
+        categoryLabel: 'סיבולת ואירובי',
+        name: 'סבב אינטרוולים: מטפסי הרים, סקוואט ונגיעות כתף',
+        dosage: '12 דקות (4 סיבובים) | 40 שנ׳ עבודה, 20 שנ׳ מנוחה',
+        primaryMuscles: ['סיבולת לב-ריאה', 'ליבה, כתפיים ורגליים'],
+        secondaryMuscles: ['סיבולת שרירית כללית'],
+        instructions: 'עבור ברצף בין מטפסי הרים (Mountain Climbers), סקוואט בקצב מהיר ונגיעות כתף מפלאנק גבוה. שמור על קצב יציב שתוכל לשמר בכל 4 הסיבובים.',
+        tip: 'מתאמן בחוץ? אפשר להחליף מקטע זה ב-15 דק׳ ריצה קלה בקצב דיבור או 2 דק׳ ריצה / 1 דק׳ הליכה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <!-- Mountain Climber Position -->
+            <line x1="62" y1="74" x2="58" y2="113" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+            <line x1="62" y1="74" x2="124" y2="86" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="48" cy="68" r="8" fill="#e2e8f0"/>
+            <!-- Driving knee -->
+            <polyline points="124,86 94,88 106,104" stroke="#38bdf8" stroke-width="6" fill="none" stroke-linecap="round" class="anim-muscle"/>
+            <!-- Extended leg -->
+            <line x1="124" y1="86" x2="162" y2="112" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+            <text x="14" y="22" fill="#38bdf8" font-size="9" font-weight="bold">דגש: סיבולת אירובית, ליבה ורגליים</text>
+          </svg>
+        `
+      },
+      shadow_boxing: {
+        id: 'shadow_boxing',
+        category: 'cardio',
+        categoryLabel: 'סיבולת ואירובי',
+        name: 'אגרוף צל והורדת דופק',
+        dosage: '6 דקות | 3 דק׳ קצב + 3 דק׳ הרגעה',
+        primaryMuscles: ['סיבולת כתפיים ורוטציית ליבה', 'קואורדינציה ותנועת רגליים'],
+        secondaryMuscles: ['הסדרת דופק ונשימה'],
+        instructions: 'בצע 3 דקות רצופות של אגרוף צל (Shadow Boxing) בתנועה קלה על כריות כפות הרגליים (או עלייה-ירידה על מדרגה), וסיים ב-3 דקות הליכה רגועה ונשימות עמוקות.',
+        tip: 'הוצא נשיפה קצרה עם כל אגרוף ושמור על הכתפיים משוחררות.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <g class="anim-cossack">
+              <circle cx="95" cy="36" r="8" fill="#e2e8f0"/>
+              <line x1="95" y1="46" x2="95" y2="82" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+              <!-- Punching arm -->
+              <line x1="95" y1="54" x2="136" y2="50" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" class="anim-muscle"/>
+              <circle cx="140" cy="50" r="4" fill="#fbbf24"/>
+              <!-- Guard arm -->
+              <polyline points="95,54 84,62 92,46" stroke="#94a3b8" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <!-- Stance legs -->
+              <line x1="95" y1="82" x2="80" y2="113" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+              <line x1="95" y1="82" x2="114" y2="113" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+            </g>
+            <text x="14" y="22" fill="#38bdf8" font-size="9" font-weight="bold">דגש: קצב, כתפיים והתאוששות</text>
+          </svg>
+        `
+      },
+      yoga_sun_warrior: {
+        id: 'yoga_sun_warrior',
+        category: 'yoga',
+        categoryLabel: 'יוגה ומוביליטי',
+        name: 'ברכת השמש, לאנג׳ נמוך ולוחם 2',
+        dosage: '18 דקות | 4–5 מחזורי ברכת השמש + 5 נשימות לכל תנוחה וצד',
+        primaryMuscles: ['פתיחת ירכיים וחזה', 'חיזוק רגליים ויציבות כתפיים'],
+        secondaryMuscles: ['מתיחת שרשרת אחורית (גב וירך אחורית)'],
+        instructions: 'התחל בחתול-פרה וברכת השמש (כפיפה לפנים, פלאנק, כלב מביט למעלה וכלב מביט מטה), והמשך ללאנג׳ נמוך, לוחם 2 ותנוחת המשולש משני הצדדים.',
+        tip: 'תאם כל מעבר לשאיפה או נשיפה מלאה, והשהה 3 נשימות בכלב מביט מטה.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <!-- Downward Facing Dog / Warrior Flow -->
+            <g class="anim-breathe">
+              <!-- Hands to Hips -->
+              <line x1="56" y1="113" x2="100" y2="44" stroke="#a78bfa" stroke-width="7" stroke-linecap="round" class="anim-muscle"/>
+              <!-- Hips to Heels -->
+              <line x1="100" y1="44" x2="146" y2="113" stroke="#c4b5fd" stroke-width="7" stroke-linecap="round"/>
+              <circle cx="72" cy="84" r="7" fill="#e2e8f0"/>
+            </g>
+            <text x="14" y="22" fill="#a78bfa" font-size="9" font-weight="bold">דגש: מתיחת גב, ירכיים וכתפיים</text>
+          </svg>
+        `
+      },
+      yoga_pigeon_release: {
+        id: 'yoga_pigeon_release',
+        category: 'yoga',
+        categoryLabel: 'יוגה ומוביליטי',
+        name: 'תנוחת היונה, פיתול שכיבה והרפיה',
+        dosage: '7 דקות | 60–90 שנ׳ לכל תנוחה',
+        primaryMuscles: ['מסובבי ירך חיצוניים וישבן (Piriformis & Glutes)'],
+        secondaryMuscles: ['שחרור גב תחתון ומערכת העצבים'],
+        instructions: 'התמקם בתנוחת היונה בכל צד לשחרור עמוק של האגן, המשך בפיתול עמוד שדרה עדין בשכיבה על הגב, וסיים בשתי דקות של תנוחת הילד עם נשימות בטן איטיות.',
+        tip: 'מקטע זה משמש גם כאפשרות להתאוששות האקטיבית בשבת.',
+        svg: `
+          <svg viewBox="0 0 200 135" class="w-full h-36 bg-slate-900/90 rounded-2xl border border-slate-800">
+            <line x1="15" y1="115" x2="185" y2="115" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <!-- Child's Pose / Deep Hip Release -->
+            <g class="anim-breathe">
+              <!-- Folded legs -->
+              <polyline points="118,112 146,112 134,88" stroke="#94a3b8" stroke-width="7" fill="none" stroke-linecap="round"/>
+              <!-- Rounded relaxed back -->
+              <path d="M 134 88 Q 102 74 78 104" stroke="#a78bfa" stroke-width="8" fill="none" stroke-linecap="round" class="anim-muscle"/>
+              <!-- Arms stretched forward -->
+              <line x1="82" y1="102" x2="42" y2="112" stroke="#c4b5fd" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="72" cy="105" r="7" fill="#e2e8f0"/>
+            </g>
+            <text x="14" y="22" fill="#a78bfa" font-size="9" font-weight="bold">דגש: שחרור אגן, גב תחתון והרפיה</text>
+          </svg>
+        `
+      }
+    };
+
+    // =========================================================================
+    // 2. WEEKLY SCHEDULE DEFINITION (SUNDAY = 0 TO SATURDAY = 6)
+    // =========================================================================
+    const WEEKLY_PLAN = [
+      {
+        dayIndex: 0,
+        shortName: 'א׳',
+        fullName: 'יום ראשון',
+        title: 'כוח א׳: דחיפה וליבה',
+        duration: 'כ-25 דק׳',
+        theme: 'emerald',
+        icon: '💪',
+        summary: 'קליסטניקס מבוסס שליטה: דחיפת כתפיים בפייק, קומפרשן L-Sit והחזקת Hollow Body.',
+        exercises: ['pike_pushup', 'lsit_prep', 'hollow_body']
+      },
+      {
+        dayIndex: 1,
+        shortName: 'ב׳',
+        fullName: 'יום שני',
+        title: 'סיבולת ואירובי',
+        duration: '23–25 דק׳',
+        theme: 'sky',
+        icon: '⚡',
+        summary: 'חימום דינמי, 4 סבבי אינטרוולים במשקל גוף (40/20) ואגרוף צל להורדת דופק.',
+        exercises: ['cardio_warmup', 'cardio_hiit', 'shadow_boxing']
+      },
+      {
+        dayIndex: 2,
+        shortName: 'ג׳',
+        fullName: 'יום שלישי',
+        title: 'יוגה וגמישות',
+        duration: 'כ-25 דק׳',
+        theme: 'violet',
+        icon: '🧘',
+        summary: 'ברכת השמש, זרימת לוחמים לפתיחת ירכיים ושחרור עמוק בתנוחת היונה.',
+        exercises: ['yoga_sun_warrior', 'yoga_pigeon_release']
+      },
+      {
+        dayIndex: 3,
+        shortName: 'ד׳',
+        fullName: 'יום רביעי',
+        title: 'כוח ב׳: רגליים, משיכה וקרקע',
+        duration: 'כ-25 דק׳',
+        theme: 'emerald',
+        icon: '🤸',
+        summary: 'סקוואט קוזאק בטווח מלא, מתח או חתירה בשליטה ותנועת קרקע לפתיחת כתפיים.',
+        exercises: ['cossack_squat', 'pull_row', 'ground_flow']
+      },
+      {
+        dayIndex: 4,
+        shortName: 'ה׳',
+        fullName: 'יום חמישי',
+        title: 'סיבולת ואירובי',
+        duration: '23–25 דק׳',
+        theme: 'sky',
+        icon: '⚡',
+        summary: 'אימון סיבולת אירובית בקצב אחיד (או ריצה קלה בחוץ) לשיפור כושר לב-ריאה.',
+        exercises: ['cardio_warmup', 'cardio_hiit', 'shadow_boxing']
+      },
+      {
+        dayIndex: 5,
+        shortName: 'ו׳',
+        fullName: 'יום שישי',
+        title: 'יוגה וגמישות',
+        duration: 'כ-25 דק׳',
+        theme: 'violet',
+        icon: '🧘',
+        summary: 'סגירת שבוע העומס בזרימת יוגה, מוביליטי מפרקי ונשימות עמוקות.',
+        exercises: ['yoga_sun_warrior', 'yoga_pigeon_release']
+      },
+      {
+        dayIndex: 6,
+        shortName: 'ש׳',
+        fullName: 'יום שבת',
+        title: 'התאוששות אקטיבית',
+        duration: '20 דק׳',
+        theme: 'amber',
+        icon: '🌿',
+        summary: '20 דקות הליכה נינוחה באוויר הפתוח או מקטע השחרור והנשימה מהיוגה.',
+        exercises: ['yoga_pigeon_release']
+      }
+    ];
+
+    // =========================================================================
+    // 3. STATE MANAGEMENT & LOCAL STORAGE
+    // =========================================================================
+    const STORAGE_KEY = 'calisthenics_he_app_v1';
+
+    function getWeekKey() {
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      return startOfWeek.toISOString().slice(0, 10);
+    }
+
+    function getTodayDateKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    const defaultState = {
+      weekKey: getWeekKey(),
+      completedExercises: {}, // { "0_pike_pushup": true }
+      completedDays: {},      // { "0": true }
+      dailyRepsLog: {},       // { "2026-11-20": true }
+      streak: 0,              // Starts at 0 and tracks real completed workouts/tasks
+      tenMinMode: false,
+      reminderTime: '18:00',
+      flexMinutes: 30,
+      lastNotifiedDate: '',
+      snoozedUntil: 0
+    };
+
+    let appState = loadState();
+    let todayDayIndex = new Date().getDay(); // 0 = Sunday ... 6 = Saturday
+    let selectedDayIndex = todayDayIndex;
+    let activeLibraryFilter = 'all';
+
+    // Recalculate streak dynamically from actual completed days and daily micro-sessions
+    function computeRealStreak(state) {
+      const completedDaysCount = Object.values(state.completedDays || {}).filter(Boolean).length;
+      const dailyRepsCount = Object.values(state.dailyRepsLog || {}).filter(Boolean).length;
+      return completedDaysCount + dailyRepsCount;
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...defaultState };
+        const parsed = JSON.parse(raw);
+        // Reset weekly checkboxes if a new week started
+        if (parsed.weekKey !== getWeekKey()) {
+          parsed.weekKey = getWeekKey();
+          parsed.completedExercises = {};
+          parsed.completedDays = {};
+        }
+        const merged = {
+          ...defaultState,
+          ...parsed,
+          completedExercises: parsed.completedExercises || {},
+          completedDays: parsed.completedDays || {},
+          dailyRepsLog: parsed.dailyRepsLog || {}
+        };
+        // Ensure no stale mock streak of 3 persists when starting fresh
+        merged.streak = computeRealStreak(merged);
+        return merged;
+      } catch (e) {
+        return { ...defaultState };
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.warn('Could not persist state', e);
+      }
+    }
+
+    // =========================================================================
+    // 4. AUDIO CHIME & NOTIFICATIONS (FLEXIBLE WORKOUT WINDOW)
+    // =========================================================================
+    function playGentleChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 uplifting chord
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+          gain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + idx * 0.12 + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.12 + 0.65);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.12);
+          osc.stop(ctx.currentTime + idx * 0.12 + 0.7);
+        });
+      } catch (e) {
+        // Ignore audio restrictions if not interacted yet
+      }
+    }
+
+    function updateCountdownAndCheckAlert() {
+      const now = new Date();
+      const [targetH, targetM] = appState.reminderTime.split(':').map(Number);
+      const targetDate = new Date(now);
+      targetDate.setHours(targetH, targetM, 0, 0);
+
+      const diffMs = targetDate.getTime() - now.getTime();
+      const diffMins = Math.round(diffMs / 60000);
+      const flex = appState.flexMinutes;
+
+      const statusEl = document.getElementById('countdownStatusText');
+      const iconBox = document.getElementById('reminderIconBox');
+      const todayPlan = WEEKLY_PLAN[todayDayIndex];
+      const isTodayDone = !!appState.completedDays[todayDayIndex];
+
+      if (isTodayDone) {
+        statusEl.textContent = 'אימון היום הושלם בהצלחה! כל הכבוד ✓';
+        statusEl.className = 'text-[11px] text-emerald-400 font-semibold truncate mt-0.5';
+        return;
+      }
+
+      if (diffMins > 15) {
+        const hrs = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        const timeStr = hrs > 0 ? `${hrs} שעות ו-${mins} דק׳` : `${mins} דקות`;
+        statusEl.textContent = `חלון האימון בעוד ${timeStr}`;
+        statusEl.className = 'text-[11px] text-slate-400 truncate mt-0.5';
+        iconBox.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0';
+      } else if (diffMins >= -flex) {
+        // Within approaching 15 mins or inside flexible window!
+        if (diffMins > 0) {
+          statusEl.textContent = `מתקרב! בעוד ${diffMins} דק׳ (חלון גמיש פתוח)`;
+        } else if (diffMins === 0) {
+          statusEl.textContent = 'הגיע זמן האימון היומי שלך!';
+        } else {
+          statusEl.textContent = `בתוך חלון הגמישות (נותרו ${flex + diffMins} דק׳)`;
+        }
+        statusEl.className = 'text-[11px] text-amber-300 font-bold truncate mt-0.5';
+        iconBox.className = 'w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 animate-pulse';
+
+        // Trigger automatic alert once per day when entering window (unless snoozed)
+        const todayKey = getTodayDateKey();
+        if (appState.lastNotifiedDate !== todayKey && Date.now() > appState.snoozedUntil) {
+          appState.lastNotifiedDate = todayKey;
+          saveState();
+          showAlertBanner(
+            `מתקרב זמן האימון: ${todayPlan.title}`,
+            `שעת היעד שלך (${appState.reminderTime}) מתקרבת. יש לך חלון גמיש של ±${flex} דקות.`
+          );
+        }
+      } else {
+        statusEl.textContent = 'חלון היעד עבר – עדיין אפשר לבצע חוק 10 דקות!';
+        statusEl.className = 'text-[11px] text-slate-400 truncate mt-0.5';
+      }
+    }
+
+    function showAlertBanner(title, body) {
+      document.getElementById('alertBannerTitle').textContent = title;
+      document.getElementById('alertBannerBody').textContent = body;
+      document.getElementById('inAppAlertBanner').classList.remove('hidden');
+      playGentleChime();
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(title, { body });
+        } catch (e) {}
+      }
+    }
+
+    function dismissAlertBanner() {
+      document.getElementById('inAppAlertBanner').classList.add('hidden');
+    }
+
+    function snoozeAlert() {
+      appState.snoozedUntil = Date.now() + 15 * 60 * 1000;
+      appState.lastNotifiedDate = ''; // Allow re-trigger after 15 mins
+      saveState();
+      dismissAlertBanner();
+    }
+
+    function startWorkoutFromAlert() {
+      dismissAlertBanner();
+      selectToday();
+      switchTab('plan');
+    }
+
+    function triggerTestNotification() {
+      const todayPlan = WEEKLY_PLAN[todayDayIndex];
+      showAlertBanner(
+        `תזכורת אימון (${appState.reminderTime}): ${todayPlan.title}`,
+        `חלון גמישות ±${appState.flexMinutes} דק׳ פעיל. ${todayPlan.duration} של תנועה איכותית!`
+      );
+    }
+
+    function requestSystemNotifications() {
+      if (!('Notification' in window)) {
+        document.getElementById('notifPermissionStatus').textContent = 'הדפדפן תומך בהתראות בתוך האפליקציה';
+        return;
+      }
+      Notification.requestPermission().then(perm => {
+        const el = document.getElementById('notifPermissionStatus');
+        if (perm === 'granted') {
+          el.textContent = 'התראות מערכת מאושרות ופעילות ✓';
+          el.className = 'text-[11px] text-emerald-400 font-semibold';
+          triggerTestNotification();
+        } else {
+          el.textContent = 'התראה בתוך האפליקציה פעילה (הרשאת מערכת נדחתה)';
+        }
+      });
+    }
+
+    // =========================================================================
+    // 5. RENDERING: WEEKLY CALENDAR & SELECTED DAY PLAN
+    // =========================================================================
+    function renderHeaderDate() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('he-IL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+      });
+      document.getElementById('hebrewDateLabel').textContent = formatter.format(now);
+      document.getElementById('streakCount').textContent = appState.streak;
+      document.getElementById('headerTargetTime').textContent = appState.reminderTime;
+      document.getElementById('headerFlexBadge').textContent = `± ${appState.flexMinutes} דק׳`;
+    }
+
+    function renderWeekCalendar() {
+      const strip = document.getElementById('weekCalendarStrip');
+      strip.innerHTML = WEEKLY_PLAN.map(day => {
+        const isToday = day.dayIndex === todayDayIndex;
+        const isSelected = day.dayIndex === selectedDayIndex;
+        const isDone = !!appState.completedDays[day.dayIndex];
+
+        let cardClasses = 'flex flex-col items-center justify-between py-2.5 px-1 rounded-2xl border transition cursor-pointer active:scale-95 relative ';
+        if (isSelected) {
+          cardClasses += 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-950/50 font-bold';
+        } else if (isToday) {
+          cardClasses += 'bg-slate-800/90 text-white border-emerald-500/60';
+        } else {
+          cardClasses += 'bg-slate-850/80 text-slate-300 border-slate-800 hover:border-slate-700';
+        }
+
+        return `
+          <button onclick="selectDay(${day.dayIndex})" class="${cardClasses}">
+            <span class="text-[11px] ${isSelected ? 'text-slate-900 font-extrabold' : 'text-slate-400'}">${day.shortName}</span>
+            <span class="text-base my-1">${isDone ? '✅' : day.icon}</span>
+            ${isToday
+              ? `<span class="text-[9px] px-1.5 rounded-full ${isSelected ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-400'} font-bold">היום</span>`
+              : `<span class="h-3"></span>`
+            }
+          </button>
+        `;
+      }).join('');
+
+      const jumpBtn = document.getElementById('jumpToTodayBtn');
+      if (selectedDayIndex !== todayDayIndex) {
+        jumpBtn.classList.remove('hidden');
+      } else {
+        jumpBtn.classList.add('hidden');
+      }
+    }
+
+    function renderSelectedDayPlan() {
+      const plan = WEEKLY_PLAN[selectedDayIndex];
+      const isToday = selectedDayIndex === todayDayIndex;
+      const isDayCompleted = !!appState.completedDays[selectedDayIndex];
+
+      // Theme styling map
+      const themeMap = {
+        emerald: {
+          bg: 'bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-900 border-emerald-500/30',
+          badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+          accent: 'text-emerald-400'
+        },
+        sky: {
+          bg: 'bg-gradient-to-br from-sky-950/80 via-slate-900 to-slate-900 border-sky-500/30',
+          badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+          accent: 'text-sky-400'
+        },
+        violet: {
+          bg: 'bg-gradient-to-br from-violet-950/80 via-slate-900 to-slate-900 border-violet-500/30',
+          badge: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+          accent: 'text-violet-400'
+        },
+        amber: {
+          bg: 'bg-gradient-to-br from-amber-950/70 via-slate-900 to-slate-900 border-amber-500/30',
+          badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+          accent: 'text-amber-400'
+        }
+      };
+      const t = themeMap[plan.theme];
+
+      // Hero Card
+      document.getElementById('dayHeroCard').className = `rounded-3xl p-4 border transition-all duration-300 ${t.bg}`;
+      document.getElementById('dayHeroCard').innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border ${t.badge}">
+                ${plan.fullName} ${isToday ? '• היום' : ''}
+              </span>
+              <span class="text-xs text-slate-400 font-medium">${plan.duration}</span>
+            </div>
+            <h2 class="text-xl font-extrabold text-white mt-2">${plan.title}</h2>
+          </div>
+          <div class="w-11 h-11 rounded-2xl bg-slate-800/80 border border-slate-700/70 flex items-center justify-center text-2xl shrink-0">
+            ${plan.icon}
+          </div>
+        </div>
+        <p class="text-xs text-slate-300 mt-2 leading-relaxed">${plan.summary}</p>
+      `;
+
+      // Daily Reps & 10-Min Rule UI
+      const todayRepsDone = !!appState.dailyRepsLog[getTodayDateKey()];
+      const repsCard = document.getElementById('dailyRepsCard');
+      const repsCheck = document.getElementById('dailyRepsCheck');
+      if (todayRepsDone) {
+        repsCard.className = 'text-right p-3 rounded-2xl border transition active:scale-[0.98] flex flex-col justify-between bg-amber-500/10 border-amber-500/40';
+        repsCheck.className = 'w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-xs';
+        repsCheck.textContent = '✓';
+      } else {
+        repsCard.className = 'text-right p-3 rounded-2xl border transition active:scale-[0.98] flex flex-col justify-between bg-slate-850/90 border-slate-800';
+        repsCheck.className = 'w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center text-xs';
+        repsCheck.textContent = '';
+      }
+
+      const tenMinCard = document.getElementById('tenMinRuleCard');
+      const tenMinBadge = document.getElementById('tenMinBadge');
+      if (appState.tenMinMode) {
+        tenMinCard.className = 'text-right p-3 rounded-2xl border transition active:scale-[0.98] flex flex-col justify-between bg-sky-500/10 border-sky-500/40';
+        tenMinBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-sky-400 text-slate-950 font-bold';
+        tenMinBadge.textContent = 'פעיל';
+      } else {
+        tenMinCard.className = 'text-right p-3 rounded-2xl border transition active:scale-[0.98] flex flex-col justify-between bg-slate-850/90 border-slate-800';
+        tenMinBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold';
+        tenMinBadge.textContent = 'כבוי';
+      }
+
+      // Render Exercise Items
+      let completedCount = 0;
+      const container = document.getElementById('dayExercisesContainer');
+      container.innerHTML = plan.exercises.map((exId, idx) => {
+        const ex = EXERCISES_DB[exId];
+        const key = `${selectedDayIndex}_${exId}`;
+        const isChecked = !!appState.completedExercises[key];
+        if (isChecked) completedCount++;
+
+        const isDimmedByTenMin = appState.tenMinMode && idx > 0;
+
+        return `
+          <div class="rounded-2xl border transition-all ${isChecked ? 'bg-slate-900/60 border-emerald-500/40' : 'bg-slate-850 border-slate-800'} ${isDimmedByTenMin ? 'opacity-45' : ''} p-3.5">
+            <div class="flex items-start gap-3">
+              <button onclick="toggleExerciseComplete('${key}')" aria-label="סמן תרגיל כהושלם"
+                class="mt-0.5 w-6 h-6 rounded-xl border-2 flex items-center justify-center shrink-0 transition active:scale-90 ${isChecked ? 'bg-emerald-500 border-emerald-500 text-slate-950 font-extrabold' : 'border-slate-600 hover:border-emerald-400'}">
+                ${isChecked ? '✓' : ''}
+              </button>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[11px] font-bold ${t.accent}">מקטע ${idx + 1} ${appState.tenMinMode && idx === 0 ? '• מומלץ ל-10 דק׳' : ''}</span>
+                  <button onclick="openExerciseModal('${exId}')" class="text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-700/70 flex items-center gap-1 active:scale-95">
+                    <span>👁️ הדגמה ושרירים</span>
+                  </button>
+                </div>
+
+                <h4 class="font-bold text-base mt-1 ${isChecked ? 'line-through text-slate-400' : 'text-white'}">${ex.name}</h4>
+                <p class="text-xs font-semibold text-amber-300/90 mt-0.5">${ex.dosage}</p>
+                <p class="text-xs text-slate-300 mt-2 leading-relaxed">${ex.instructions}</p>
+
+                <!-- Expandable Progression / Adaptation Tip -->
+                <details class="mt-2.5 group">
+                  <summary class="text-[11px] font-semibold text-slate-400 hover:text-emerald-400 cursor-pointer list-none flex items-center gap-1">
+                    <span class="group-open:rotate-90 transition-transform inline-block">◂</span>
+                    <span>טיפ להתאמה והתקדמות</span>
+                  </summary>
+                  <div class="mt-1.5 text-[11px] text-slate-300 bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 leading-relaxed">
+                    ${ex.tip}
+                  </div>
+                </details>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('dayProgressText').textContent = `${completedCount}/${plan.exercises.length} הושלמו`;
+
+      // Complete Day CTA Button
+      const btn = document.getElementById('completeWorkoutBtn');
+      if (isDayCompleted) {
+        btn.className = 'w-full py-3.5 rounded-2xl font-bold text-sm transition active:scale-[0.98] flex items-center justify-center gap-2 bg-slate-800 text-emerald-400 border border-emerald-500/40';
+        btn.innerHTML = '<span>✅ אימון יום זה הושלם! (לחץ לביטול סימון)</span>';
+      } else {
+        btn.className = 'w-full py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-emerald-950/60 transition active:scale-[0.98] flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950';
+        btn.innerHTML = `<span>סמן את אימון ${plan.fullName} כהושלם ✓</span>`;
+      }
+    }
+
+    // =========================================================================
+    // 6. RENDERING: EXERCISE LIBRARY TAB & DETAIL MODAL
+    // =========================================================================
+    function renderLibrary() {
+      const container = document.getElementById('libraryCardsContainer');
+      const allExercises = Object.values(EXERCISES_DB);
+      const filtered = activeLibraryFilter === 'all'
+        ? allExercises
+        : allExercises.filter(ex => ex.category === activeLibraryFilter);
+
+      container.innerHTML = filtered.map(ex => {
+        const badgeColor = ex.category === 'strength'
+          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+          : ex.category === 'cardio'
+            ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+            : 'bg-violet-500/15 text-violet-300 border-violet-500/30';
+
+        return `
+          <article class="bg-slate-850 border border-slate-800 rounded-3xl p-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}">${ex.categoryLabel}</span>
+              <span class="text-[11px] text-slate-400 font-medium">${ex.dosage.split('|')[0]}</span>
+            </div>
+
+            <h3 class="text-base font-extrabold text-white">${ex.name}</h3>
+
+            <!-- Demonstrative SVG Illustration -->
+            <div class="relative">
+              ${ex.svg}
+            </div>
+
+            <!-- Target Muscles Section -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 space-y-2">
+              <div>
+                <span class="text-[11px] font-bold text-emerald-400 block mb-1">🎯 שרירים עיקריים עובדים:</span>
+                <div class="flex flex-wrap gap-1.5">
+                  ${ex.primaryMuscles.map(m => `<span class="text-[11px] font-semibold bg-emerald-500/15 text-emerald-200 border border-emerald-500/25 px-2.5 py-0.5 rounded-lg">${m}</span>`).join('')}
+                </div>
+              </div>
+              <div>
+                <span class="text-[11px] font-semibold text-slate-400 block mb-1">שרירים מסייעים ומייצבים:</span>
+                <div class="flex flex-wrap gap-1.5">
+                  ${ex.secondaryMuscles.map(m => `<span class="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg">${m}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Execution & Tip -->
+            <p class="text-xs text-slate-300 leading-relaxed">${ex.instructions}</p>
+            <div class="text-[11px] text-amber-200/90 bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 leading-relaxed">
+              <strong>דגש טכני והתקדמות:</strong> ${ex.tip}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function filterLibrary(cat) {
+      activeLibraryFilter = cat;
+      document.querySelectorAll('.lib-filter-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = 'lib-filter-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 transition';
+        } else {
+          btn.className = 'lib-filter-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+        }
+      });
+      renderLibrary();
+    }
+
+    function openExerciseModal(exId) {
+      const ex = EXERCISES_DB[exId];
+      if (!ex) return;
+      document.getElementById('modalCategoryTag').textContent = ex.categoryLabel;
+      document.getElementById('modalBodyContent').innerHTML = `
+        <h3 class="text-lg font-extrabold text-white">${ex.name}</h3>
+        <p class="text-xs font-semibold text-amber-300">${ex.dosage}</p>
+        ${ex.svg}
+        <div class="bg-slate-850 border border-slate-800 rounded-2xl p-3 space-y-2">
+          <div>
+            <span class="text-xs font-bold text-emerald-400 block mb-1">🎯 שרירים עיקריים:</span>
+            <div class="flex flex-wrap gap-1.5">
+              ${ex.primaryMuscles.map(m => `<span class="text-xs font-semibold bg-emerald-500/15 text-emerald-200 px-2.5 py-1 rounded-lg">${m}</span>`).join('')}
+            </div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-slate-400 block mb-1">שרירים מסייעים:</span>
+            <div class="flex flex-wrap gap-1.5">
+              ${ex.secondaryMuscles.map(m => `<span class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg">${m}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-200 leading-relaxed">${ex.instructions}</p>
+        <div class="text-xs text-slate-300 bg-slate-850 border border-slate-800 rounded-xl p-3 leading-relaxed">
+          <strong class="text-emerald-400">טיפ להתאמה:</strong> ${ex.tip}
+        </div>
+      `;
+      document.getElementById('exerciseDetailModal').classList.remove('hidden');
+    }
+
+    function closeExerciseModal() {
+      document.getElementById('exerciseDetailModal').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 7. USER INTERACTIONS & BUILT-IN REST / INTERVAL TIMER
+    // =========================================================================
+    function selectDay(dayIndex) {
+      selectedDayIndex = dayIndex;
+      renderWeekCalendar();
+      renderSelectedDayPlan();
+    }
+
+    function selectToday() {
+      selectedDayIndex = todayDayIndex;
+      renderWeekCalendar();
+      renderSelectedDayPlan();
+    }
+
+    function toggleExerciseComplete(key) {
+      appState.completedExercises[key] = !appState.completedExercises[key];
+      const plan = WEEKLY_PLAN[selectedDayIndex];
+      const allDone = plan.exercises.every(exId => appState.completedExercises[`${selectedDayIndex}_${exId}`]);
+      const wasDayDone = !!appState.completedDays[selectedDayIndex];
+      if (allDone && !wasDayDone) {
+        appState.completedDays[selectedDayIndex] = true;
+        playGentleChime();
+      } else if (!allDone && wasDayDone) {
+        appState.completedDays[selectedDayIndex] = false;
+      }
+      appState.streak = computeRealStreak(appState);
+      saveState();
+      renderHeaderDate();
+      renderWeekCalendar();
+      renderSelectedDayPlan();
+      updateCountdownAndCheckAlert();
+    }
+
+    function markEntireDayComplete() {
+      const plan = WEEKLY_PLAN[selectedDayIndex];
+      const currentlyDone = !!appState.completedDays[selectedDayIndex];
+      if (currentlyDone) {
+        appState.completedDays[selectedDayIndex] = false;
+        plan.exercises.forEach(exId => {
+          appState.completedExercises[`${selectedDayIndex}_${exId}`] = false;
+        });
+      } else {
+        appState.completedDays[selectedDayIndex] = true;
+        plan.exercises.forEach(exId => {
+          appState.completedExercises[`${selectedDayIndex}_${exId}`] = true;
+        });
+        playGentleChime();
+      }
+      appState.streak = computeRealStreak(appState);
+      saveState();
+      renderHeaderDate();
+      renderWeekCalendar();
+      renderSelectedDayPlan();
+      updateCountdownAndCheckAlert();
+    }
+
+    function toggleDailyReps() {
+      const key = getTodayDateKey();
+      appState.dailyRepsLog[key] = !appState.dailyRepsLog[key];
+      if (appState.dailyRepsLog[key]) playGentleChime();
+      appState.streak = computeRealStreak(appState);
+      saveState();
+      renderHeaderDate();
+      renderSelectedDayPlan();
+    }
+
+    function toggleTenMinMode() {
+      appState.tenMinMode = !appState.tenMinMode;
+      saveState();
+      renderSelectedDayPlan();
+    }
+
+    // Navigation
+    function switchTab(tabName) {
+      ['plan', 'library', 'settings'].forEach(t => {
+        const section = document.getElementById(`tab-${t}`);
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (t === tabName) {
+          section.classList.remove('hidden');
+          navBtn.className = 'nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-emerald-400 transition';
+        } else {
+          section.classList.add('hidden');
+          navBtn.className = 'nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 transition';
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Settings Handlers
+    function saveReminderSettings() {
+      const timeVal = document.getElementById('workoutTimeInput').value;
+      if (timeVal) {
+        appState.reminderTime = timeVal;
+        appState.lastNotifiedDate = ''; // Reset alert trigger for updated time
+        saveState();
+        renderHeaderDate();
+        updateCountdownAndCheckAlert();
+      }
+    }
+
+    function setFlexWindow(mins) {
+      appState.flexMinutes = mins;
+      saveState();
+      renderFlexButtons();
+      renderHeaderDate();
+      updateCountdownAndCheckAlert();
+    }
+
+    function renderFlexButtons() {
+      document.querySelectorAll('.flex-opt-btn').forEach(btn => {
+        const val = Number(btn.dataset.flex);
+        if (val === appState.flexMinutes) {
+          btn.className = 'flex-opt-btn py-2.5 px-2 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-300';
+        } else {
+          btn.className = 'flex-opt-btn py-2.5 px-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300';
+        }
+      });
+    }
+
+    function confirmResetWeek() {
+      appState.completedExercises = {};
+      appState.completedDays = {};
+      appState.dailyRepsLog = {};
+      appState.streak = 0;
+      saveState();
+      renderHeaderDate();
+      renderWeekCalendar();
+      renderSelectedDayPlan();
+      switchTab('plan');
+    }
+
+    // Built-in Rest & 40/20 Interval Timer
+    let timerInterval = null;
+    let remainingSeconds = 0;
+    let interval4020Active = false;
+    let interval4020Phase = 'work'; // 'work' (40s) | 'rest' (20s)
+    let interval4020Round = 1;
+
+    function formatSeconds(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startPresetTimer(seconds, label) {
+      stopTimer();
+      interval4020Active = false;
+      remainingSeconds = seconds;
+      document.getElementById('timerModeLabel').textContent = label;
+      document.getElementById('timerDisplay').textContent = formatSeconds(remainingSeconds);
+      document.getElementById('timerDisplay').className = 'font-num text-2xl font-extrabold text-emerald-400 tracking-wider bg-slate-900 px-3 py-1 rounded-xl border border-emerald-500/40';
+      document.getElementById('stopTimerBtn').classList.remove('hidden');
+
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        if (remainingSeconds <= 0) {
+          playGentleChime();
+          stopTimer();
+          document.getElementById('timerModeLabel').textContent = 'הזמן הסתיים! מוכן לסט הבא';
+        } else {
+          document.getElementById('timerDisplay').textContent = formatSeconds(remainingSeconds);
+        }
+      }, 1000);
+    }
+
+    function startInterval4020() {
+      stopTimer();
+      interval4020Active = true;
+      interval4020Phase = 'work';
+      interval4020Round = 1;
+      remainingSeconds = 40;
+      playGentleChime();
+      update4020UI();
+      document.getElementById('stopTimerBtn').classList.remove('hidden');
+
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        if (remainingSeconds <= 0) {
+          playGentleChime();
+          if (interval4020Phase === 'work') {
+            interval4020Phase = 'rest';
+            remainingSeconds = 20;
+          } else {
+            if (interval4020Round >= 4) {
+              stopTimer();
+              document.getElementById('timerModeLabel').textContent = '4 סיבובי אינטרוול הושלמו!';
+              return;
+            }
+            interval4020Round++;
+            interval4020Phase = 'work';
+            remainingSeconds = 40;
+          }
+        }
+        update4020UI();
+      }, 1000);
+    }
+
+    function update4020UI() {
+      const isWork = interval4020Phase === 'work';
+      document.getElementById('timerModeLabel').textContent = `סיבוב ${interval4020Round}/4 • ${isWork ? 'עבודה!' : 'מנוחה'}`;
+      document.getElementById('timerDisplay').textContent = formatSeconds(remainingSeconds);
+      document.getElementById('timerDisplay').className = `font-num text-2xl font-extrabold tracking-wider bg-slate-900 px-3 py-1 rounded-xl border ${isWork ? 'text-amber-400 border-amber-500/40' : 'text-sky-400 border-sky-500/40'}`;
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      interval4020Active = false;
+      document.getElementById('timerDisplay').textContent = '00:00';
+      document.getElementById('timerDisplay').className = 'font-num text-2xl font-extrabold text-white tracking-wider bg-slate-900 px-3 py-1 rounded-xl border border-slate-700/70';
+      document.getElementById('timerModeLabel').textContent = 'בחר משך מנוחה או עבודה';
+      document.getElementById('stopTimerBtn').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 8. INITIALIZATION & SAFE SERVICE WORKER REGISTRATION
+    // =========================================================================
+    function registerServiceWorkerSafely() {
+      if (!('serviceWorker' in navigator)) return;
+      try {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {
+            // Ignore registration failures in restricted/preview contexts
+          });
+        });
+      } catch (e) {
+        // Safe fallback if service worker is unavailable
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('workoutTimeInput').value = appState.reminderTime;
+      renderFlexButtons();
+      renderHeaderDate();
+      renderWeekCalendar();
+      renderSelectedDayPlan();
+      renderLibrary();
+      updateCountdownAndCheckAlert();
+      registerServiceWorkerSafely();
+
+      // Check countdown & flexible workout window every 20 seconds
+      setInterval(updateCountdownAndCheckAlert, 20000);
+    });
+  </script>
+</body>
+</html>

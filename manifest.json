@@ -1,0 +1,27 @@
+{
+  "name": "התכנית השבועית שלי – כושר וקליסטניקס",
+  "short_name": "הכושר שלי",
+  "description": "תכנית יומית של 20–30 דקות: קליסטניקס, סיבולת, יוגה והתאוששות אקטיבית",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1120",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%230f172a'/%3E%3Ccircle cx='96' cy='96' r='58' fill='%2310b981' fill-opacity='0.18'/%3E%3Ctext x='96' y='118' font-size='76' text-anchor='middle'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230f172a'/%3E%3Ccircle cx='256' cy='256' r='154' fill='%2310b981' fill-opacity='0.18'/%3E%3Ctext x='256' y='316' font-size='200' text-anchor='middle'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
